@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leo y Escribo - App Educativa</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#9333ea">
+    <meta name="description" content="Aplicación educativa de lectura y escritura para niños de primaria">
+    <link rel="icon" type="image/png" href="./icon-192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; overflow-x: hidden; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState } = React;
+        
+        // Iconos como componentes SVG simples
+        const Book = () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
+        const Pencil = () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>;
+        const Star = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+        const Trophy = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
+        const ArrowLeft = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>;
+
+        const LecturaEscrituraApp = () => {
+          const [screen, setScreen] = useState('home');
+          const [currentLevel, setCurrentLevel] = useState(0);
+          const [points, setPoints] = useState(0);
+          const [completedLevels, setCompletedLevels] = useState({});
+
+          const ejerciciosLectura = [
+            { titulo: "La vocal A", texto: "Ana ama a papá", pregunta: "¿Quién ama a papá?", opciones: ["Ana", "Mamá", "El perro"], correcta: 0, emoji: "👧" },
+            { titulo: "La vocal E", texto: "Pepe tiene leche", pregunta: "¿Qué tiene Pepe?", opciones: ["Pan", "Leche", "Té"], correcta: 1, emoji: "🥛" },
+            { titulo: "La vocal I", texto: "Mimí vive aquí", pregunta: "¿Dónde vive Mimí?", opciones: ["Allá", "Aquí", "Lejos"], correcta: 1, emoji: "🏠" },
+            { titulo: "La vocal O", texto: "Lolo come oso de oro", pregunta: "¿De qué es el oso?", opciones: ["Plata", "Oro", "Cobre"], correcta: 1, emoji: "🧸" },
+            { titulo: "La vocal U", texto: "Lulú usa su uva", pregunta: "¿Qué usa Lulú?", opciones: ["Manzana", "Pera", "Uva"], correcta: 2, emoji: "🍇" },
+            { titulo: "Mamá y papá", texto: "Mi mamá me ama. Mi papá me mima.", pregunta: "¿Quién te mima?", opciones: ["Mamá", "Papá", "Ambos"], correcta: 1, emoji: "👨‍👩‍👧" },
+            { titulo: "El gato", texto: "Mi gato toma leche. Le gusta saltar.", pregunta: "¿Qué toma el gato?", opciones: ["Agua", "Leche", "Jugo"], correcta: 1, emoji: "🐱" },
+            { titulo: "La pelota", texto: "Tengo una pelota roja. Me gusta jugar.", pregunta: "¿De qué color es la pelota?", opciones: ["Azul", "Roja", "Verde"], correcta: 1, emoji: "⚽" },
+            { titulo: "El sol", texto: "El sol sale por la mañana. Es amarillo.", pregunta: "¿Cuándo sale el sol?", opciones: ["Por la noche", "Por la mañana", "Por la tarde"], correcta: 1, emoji: "☀️" },
+            { titulo: "Mi escuela", texto: "Voy a la escuela. Aprendo a leer y escribir.", pregunta: "¿Qué aprendes en la escuela?", opciones: ["A cocinar", "A leer y escribir", "A dormir"], correcta: 1, emoji: "🏫" }
+          ];
+
+          const ejerciciosEscritura = [
+            { titulo: "Escribe la letra A", instruccion: "Traza la letra A", letra: "A", emoji: "✏️" },
+            { titulo: "Escribe la letra E", instruccion: "Traza la letra E", letra: "E", emoji: "✏️" },
+            { titulo: "Escribe la letra I", instruccion: "Traza la letra I", letra: "I", emoji: "✏️" },
+            { titulo: "Escribe la letra O", instruccion: "Traza la letra O", letra: "O", emoji: "✏️" },
+            { titulo: "Escribe la letra U", instruccion: "Traza la letra U", letra: "U", emoji: "✏️" },
+            { titulo: "Escribe: mamá", instruccion: "Escribe la palabra completa", palabra: "mamá", emoji: "👩" },
+            { titulo: "Escribe: papá", instruccion: "Escribe la palabra completa", palabra: "papá", emoji: "👨" },
+            { titulo: "Escribe: sol", instruccion: "Escribe la palabra completa", palabra: "sol", emoji: "☀️" },
+            { titulo: "Escribe: casa", instruccion: "Escribe la palabra completa", palabra: "casa", emoji: "🏠" },
+            { titulo: "Escribe: gato", instruccion: "Escribe la palabra completa", palabra: "gato", emoji: "🐱" }
+          ];
+
+          const [selectedAnswer, setSelectedAnswer] = useState(null);
+          const [showResult, setShowResult] = useState(false);
+          const [userInput, setUserInput] = useState('');
+          const [canvasRef, setCanvasRef] = useState(null);
+          const [isDrawing, setIsDrawing] = useState(false);
+
+          const handleLecturaAnswer = (index) => {
+            setSelectedAnswer(index);
+            setShowResult(true);
+            if (index === ejerciciosLectura[currentLevel].correcta) {
+              setPoints(points + 10);
+              setCompletedLevels({...completedLevels, [`lectura-${currentLevel}`]: true});
+            }
+          };
+
+          const handleEscrituraSubmit = () => {
+            const ejercicio = ejerciciosEscritura[currentLevel];
+            const respuestaCorrecta = ejercicio.letra?.toLowerCase() || ejercicio.palabra?.toLowerCase();
+            if (userInput.toLowerCase().trim() === respuestaCorrecta) {
+              setPoints(points + 10);
+              setCompletedLevels({...completedLevels, [`escritura-${currentLevel}`]: true});
+              setShowResult(true);
+            } else {
+              setShowResult(true);
+            }
+          };
+
+          const nextLevel = () => {
+            if (currentLevel < 9) {
+              setCurrentLevel(currentLevel + 1);
+              setSelectedAnswer(null);
+              setShowResult(false);
+              setUserInput('');
+            } else {
+              setScreen('home');
+              setCurrentLevel(0);
+              setSelectedAnswer(null);
+              setShowResult(false);
+              setUserInput('');
+            }
+          };
+
+          const startDrawing = (e) => {
+            if (!canvasRef) return;
+            const rect = canvasRef.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const ctx = canvasRef.getContext('2d');
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            setIsDrawing(true);
+          };
+
+          const draw = (e) => {
+            if (!isDrawing || !canvasRef) return;
+            const rect = canvasRef.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const ctx = canvasRef.getContext('2d');
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+          };
+
+          const stopDrawing = () => {
+            setIsDrawing(false);
+          };
+
+          const clearCanvas = () => {
+            if (!canvasRef) return;
+            const ctx = canvasRef.getContext('2d');
+            ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
+          };
+
+          if (screen === 'home') {
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 p-4">
+                <div className="max-w-md mx-auto">
+                  <div className="flex justify-start mb-4 pt-4">
+                    <img 
+                      src="./icon-192.png" 
+                      alt="Escudo del Colegio" 
+                      className="w-20 h-20 object-contain"
+                    />
+                  </div>
+                  <div className="text-center mb-8">
+                    <h1 className="text-4xl font-bold text-purple-600 mb-2">📚 Leo y Escribo</h1>
+                    <p className="text-purple-500">¡Aprende jugando!</p>
+                    <div className="mt-4 bg-white/70 backdrop-blur rounded-full px-6 py-3 inline-flex items-center gap-2">
+                      <Trophy />
+                      <span className="font-bold text-purple-700">{points} puntos</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <button onClick={() => {setScreen('lectura'); setCurrentLevel(0);}} className="w-full bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 text-white rounded-3xl p-8 shadow-lg transform transition hover:scale-105">
+                      <div className="flex items-center justify-center gap-4">
+                        <Book />
+                        <div className="text-left">
+                          <h2 className="text-2xl font-bold">Lectura</h2>
+                          <p className="text-sm">10 ejercicios divertidos</p>
+                        </div>
+                      </div>
+                    </button>
+
+                    <button onClick={() => {setScreen('escritura'); setCurrentLevel(0);}} className="w-full bg-gradient-to-r from-blue-300 to-purple-300 hover:from-blue-400 hover:to-purple-400 text-white rounded-3xl p-8 shadow-lg transform transition hover:scale-105">
+                      <div className="flex items-center justify-center gap-4">
+                        <Pencil />
+                        <div className="text-left">
+                          <h2 className="text-2xl font-bold">Escritura</h2>
+                          <p className="text-sm">10 ejercicios de práctica</p>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div className="mt-8 bg-white/70 backdrop-blur rounded-3xl p-6">
+                    <h3 className="font-bold text-purple-600 mb-4 flex items-center gap-2">
+                      <Star />
+                      Tu progreso
+                    </h3>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-sm text-purple-600">Lectura: {Object.keys(completedLevels).filter(k => k.startsWith('lectura')).length}/10</p>
+                        <div className="bg-purple-200 rounded-full h-3 overflow-hidden">
+                          <div className="bg-gradient-to-r from-rose-400 to-pink-400 h-full transition-all" style={{width: `${Object.keys(completedLevels).filter(k => k.startsWith('lectura')).length * 10}%`}} />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-purple-600">Escritura: {Object.keys(completedLevels).filter(k => k.startsWith('escritura')).length}/10</p>
+                        <div className="bg-purple-200 rounded-full h-3 overflow-hidden">
+                          <div className="bg-gradient-to-r from-blue-400 to-purple-400 h-full transition-all" style={{width: `${Object.keys(completedLevels).filter(k => k.startsWith('escritura')).length * 10}%`}} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          if (screen === 'lectura') {
+            const ejercicio = ejerciciosLectura[currentLevel];
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-rose-100 via-pink-100 to-purple-100 p-4">
+                <div className="max-w-md mx-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <button onClick={() => {setScreen('home'); setShowResult(false); setSelectedAnswer(null);}} className="bg-white/70 backdrop-blur rounded-full p-3 hover:bg-white">
+                      <ArrowLeft />
+                    </button>
+                    <div className="bg-white/70 backdrop-blur rounded-full px-4 py-2">
+                      <span className="font-bold text-purple-600">Nivel {currentLevel + 1}/10</span>
+                    </div>
+                    <div className="bg-white/70 backdrop-blur rounded-full px-4 py-2">
+                      <span className="font-bold text-yellow-600">{points} ⭐</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/80 backdrop-blur rounded-3xl p-8 shadow-xl">
+                    <div className="text-center mb-6">
+                      <div className="text-6xl mb-4">{ejercicio.emoji}</div>
+                      <h2 className="text-2xl font-bold text-purple-600 mb-4">{ejercicio.titulo}</h2>
+                      <div className="bg-gradient-to-r from-rose-200 to-pink-200 rounded-2xl p-6 mb-6">
+                        <p className="text-xl text-purple-800 leading-relaxed">{ejercicio.texto}</p>
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <p className="text-lg font-semibold text-purple-700 mb-4">{ejercicio.pregunta}</p>
+                      <div className="space-y-3">
+                        {ejercicio.opciones.map((opcion, index) => (
+                          <button key={index} onClick={() => !showResult && handleLecturaAnswer(index)} disabled={showResult} className={`w-full p-4 rounded-2xl text-lg font-medium transition transform hover:scale-105 ${showResult && index === ejercicio.correcta ? 'bg-green-300 text-green-800' : showResult && index === selectedAnswer ? 'bg-red-300 text-red-800' : 'bg-purple-200 hover:bg-purple-300 text-purple-700'}`}>
+                            {opcion}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {showResult && (
+                      <div className="text-center">
+                        {selectedAnswer === ejercicio.correcta ? (
+                          <div className="bg-green-200 rounded-2xl p-4 mb-4">
+                            <p className="text-2xl mb-2">🎉</p>
+                            <p className="text-green-800 font-bold">¡Muy bien! +10 puntos</p>
+                          </div>
+                        ) : (
+                          <div className="bg-red-200 rounded-2xl p-4 mb-4">
+                            <p className="text-2xl mb-2">💪</p>
+                            <p className="text-red-800 font-bold">Sigue intentando</p>
+                          </div>
+                        )}
+                        <button onClick={nextLevel} className="bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-8 rounded-full transform transition hover:scale-105">
+                          {currentLevel < 9 ? 'Siguiente nivel' : 'Terminar'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          if (screen === 'escritura') {
+            const ejercicio = ejerciciosEscritura[currentLevel];
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 p-4">
+                <div className="max-w-md mx-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <button onClick={() => {setScreen('home'); setShowResult(false); setUserInput(''); clearCanvas();}} className="bg-white/70 backdrop-blur rounded-full p-3 hover:bg-white">
+                      <ArrowLeft />
+                    </button>
+                    <div className="bg-white/70 backdrop-blur rounded-full px-4 py-2">
+                      <span className="font-bold text-purple-600">Nivel {currentLevel + 1}/10</span>
+                    </div>
+                    <div className="bg-white/70 backdrop-blur rounded-full px-4 py-2">
+                      <span className="font-bold text-yellow-600">{points} ⭐</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/80 backdrop-blur rounded-3xl p-8 shadow-xl">
+                    <div className="text-center mb-6">
+                      <div className="text-6xl mb-4">{ejercicio.emoji}</div>
+                      <h2 className="text-2xl font-bold text-purple-600 mb-2">{ejercicio.titulo}</h2>
+                      <p className="text-purple-500">{ejercicio.instruccion}</p>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-blue-200 to-purple-200 rounded-2xl p-8 mb-6">
+                      <p className="text-6xl font-bold text-center text-purple-700">
+                        {ejercicio.letra || ejercicio.palabra}
+                      </p>
+                    </div>
+
+                    {currentLevel < 5 ? (
+                      <div className="mb-6">
+                        <p className="text-center text-purple-600 mb-3 font-medium">Practica trazando aquí:</p>
+                        <canvas ref={setCanvasRef} width={300} height={200} className="border-4 border-purple-300 rounded-2xl bg-white w-full cursor-crosshair" onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} onTouchStart={(e) => { const touch = e.touches[0]; startDrawing({clientX: touch.clientX, clientY: touch.clientY}); }} onTouchMove={(e) => { const touch = e.touches[0]; draw({clientX: touch.clientX, clientY: touch.clientY}); }} onTouchEnd={stopDrawing} />
+                        <button onClick={clearCanvas} className="w-full mt-3 bg-purple-300 hover:bg-purple-400 text-purple-700 font-bold py-2 px-4 rounded-xl">
+                          Borrar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mb-6">
+                        <p className="text-center text-purple-600 mb-3 font-medium">Escribe la palabra:</p>
+                        <input type="text" value={userInput} onChange={(e) => setUserInput(e.target.value)} className="w-full p-4 text-2xl text-center border-4 border-purple-300 rounded-2xl focus:outline-none focus:border-purple-500" placeholder="Escribe aquí..." disabled={showResult} />
+                      </div>
+                    )}
+
+                    {!showResult ? (
+                      <button onClick={currentLevel < 5 ? () => {setShowResult(true); setPoints(points + 10); setCompletedLevels({...completedLevels, [`escritura-${currentLevel}`]: true});} : handleEscrituraSubmit} className="w-full bg-gradient-to-r from-blue-400 to-purple-400 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 px-8 rounded-full transform transition hover:scale-105">
+                        Comprobar
+                      </button>
+                    ) : (
+                      <div className="text-center">
+                        {(currentLevel < 5 || userInput.toLowerCase().trim() === (ejercicio.letra?.toLowerCase() || ejercicio.palabra?.toLowerCase())) ? (
+                          <div className="bg-green-200 rounded-2xl p-4 mb-4">
+                            <p className="text-2xl mb-2">🎉</p>
+                            <p className="text-green-800 font-bold">¡Excelente trabajo! +10 puntos</p>
+                          </div>
+                        ) : (
+                          <div className="bg-red-200 rounded-2xl p-4 mb-4">
+                            <p className="text-2xl mb-2">💪</p>
+                            <p className="text-red-800 font-bold">Intenta de nuevo. La respuesta es: {ejercicio.palabra}</p>
+                          </div>
+                        )}
+                        <button onClick={nextLevel} className="bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-8 rounded-full transform transition hover:scale-105">
+                          {currentLevel < 9 ? 'Siguiente nivel' : 'Terminar'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+        };
+
+        ReactDOM.render(<LecturaEscrituraApp />, document.getElementById('root'));
+    </script>
+
+    <script>
+        // Registrar Service Worker para hacer la app instalable
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registrado'))
+                    .catch(err => console.log('Error al registrar SW:', err));
+            });
+        }
+    </script>
+</body>
+</html>
+
+📄 Archivo 2: manifest.json
+json{
+  "name": "Leo y Escribo - App Educativa",
+  "short_name": "Leo y Escribo",
+  "description": "Aplicación educativa de lectura y escritura para niños de primaria",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3e8ff",
+  "theme_color": "#9333ea",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
+📄 Archivo 3: sw.js (Service Worker)
+Crea un archivo llamado sw.js:
+javascriptconst CACHE_NAME = 'leo-escribo-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
+});
